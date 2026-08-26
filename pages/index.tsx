@@ -5,26 +5,26 @@ import rawData from '../public/data/latest.json';
 type Stock = {
   Symbol: string;
   Company: string;
-  Score: string;
-  'Weighted Score'?: number;
-  Action: string;
+  Score?: string | null;
+  'Weighted Score'?: number | null;
+  Action?: string | null;
   Industry: string;
-  'Current Price'?: number;
-  ATH?: number;
-  '52W Return'?: number;
-  'Beats Nifty500'?: boolean;
-  'Beats Sector'?: boolean;
-  'Record PAT?'?: boolean;
-  'Price Quality Score'?: number;
-  'Fundamental Score'?: number;
-  'RS Composite Score'?: number;
-  'Risk Flags'?: string;
-  'Pass Risk Filter'?: boolean;
-  Beta?: number;
-  'Alpha (Annual)'?: number;
-  'RS Line Trend'?: string;
-  'PAT CAGR'?: number;
-  'Data Status'?: string;
+  'Current Price'?: number | null;
+  ATH?: number | null;
+  '52W Return'?: number | null;
+  'Beats Nifty500'?: boolean | null;
+  'Beats Sector'?: boolean | null;
+  'Record PAT?'?: boolean | null;
+  'Price Quality Score'?: number | null;
+  'Fundamental Score'?: number | null;
+  'RS Composite Score'?: number | null;
+  'Risk Flags'?: string | null;
+  'Pass Risk Filter'?: boolean | null;
+  Beta?: number | null;
+  'Alpha (Annual)'?: number | null;
+  'RS Line Trend'?: string | null;
+  'PAT CAGR'?: number | null;
+  'Data Status'?: string | null;
   _sheet: string;
 };
 
@@ -47,13 +47,13 @@ const typedData: ScreenerData = {
 const isValidNum = (n: unknown): n is number =>
   typeof n === 'number' && !Number.isNaN(n);
 
-const fmtPct = (n: number | undefined) =>
+const fmtPct = (n: number | null | undefined) =>
   isValidNum(n) ? `${(n * 100).toFixed(2)}%` : '—';
 
-const fmtPrice = (n: number | undefined) =>
+const fmtPrice = (n: number | null | undefined) =>
   isValidNum(n) ? `₹${n.toFixed(2)}` : '—';
 
-const fmtNum = (n: number | undefined, digits = 2) =>
+const fmtNum = (n: number | null | undefined, digits = 2) =>
   isValidNum(n) ? n.toFixed(digits) : '—';
 
 const timeAgo = (dateStr: string) => {
@@ -85,14 +85,14 @@ export default function Dashboard() {
     if (tab === '3/3') rows = rows.filter((r) => r.Score === '3/3');
     if (tab === '2/3') rows = rows.filter((r) => r.Score === '2/3');
     if (tab === 'RISK_REJECT') rows = rows.filter((r) => r.Action === 'RISK REJECT');
-    if (tab === 'EXIT') rows = rows.filter((r) => ['0/3', '1/3'].includes(r.Score));
+    if (tab === 'EXIT') rows = rows.filter((r) => ['0/3', '1/3'].includes(r.Score ?? ''));
     if (search.trim()) {
       const q = search.toLowerCase();
       rows = rows.filter(
         (r) =>
-          r.Symbol.toLowerCase().includes(q) ||
-          r.Company.toLowerCase().includes(q) ||
-          r.Industry.toLowerCase().includes(q)
+          (r.Symbol ?? '').toLowerCase().includes(q) ||
+          (r.Company ?? '').toLowerCase().includes(q) ||
+          (r.Industry ?? '').toLowerCase().includes(q)
       );
     }
     return rows;
@@ -102,7 +102,7 @@ export default function Dashboard() {
   const freshness = timeAgo(typedData.generated_at);
   const isStale = freshness.includes('h') || freshness.includes('d') || freshness === 'Unknown';
 
-  const actionBadge = (action: string, score: string) => {
+  const actionBadge = (action?: string | null, score?: string | null) => {
     if (action === 'CONVICTION BUY') return 'bg-purple-600 text-white';
     if (score === '3/3') return 'bg-emerald-500 text-white';
     if (score === '2/3') return 'bg-amber-500 text-white';
@@ -110,11 +110,17 @@ export default function Dashboard() {
     return 'bg-red-400 text-white';
   };
 
-  const scoreBadge = (score: string) => {
+  const scoreBadge = (score?: string | null) => {
     if (score === '3/3') return 'bg-emerald-100 text-emerald-700 border border-emerald-200';
     if (score === '2/3') return 'bg-amber-100 text-amber-700 border border-amber-200';
     if (score === '1/3') return 'bg-orange-100 text-orange-700 border border-orange-200';
     return 'bg-red-100 text-red-700 border border-red-200';
+  };
+
+  const actionLabel = (action?: string | null) => {
+    if (!action) return '—';
+    if (action === 'CONVICTION BUY') return 'CONVICTION';
+    return action.split(' - ')[0] ?? '—';
   };
 
   return (
@@ -138,7 +144,7 @@ export default function Dashboard() {
             </p>
           </div>
           <a
-            href="https://github.com/thejaduijin/advanced_stock_scanner/actions"
+            href="https://github.com/thejaduijin/growth_scanner/actions"
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition"
@@ -235,19 +241,19 @@ export default function Dashboard() {
                   const isConviction = row.Action === 'CONVICTION BUY';
                   return (
                     <tr key={i} className={`hover:bg-slate-50 transition ${isConviction ? 'bg-purple-50/50' : ''}`}>
-                      <td className="px-3 py-3 font-bold text-slate-900 whitespace-nowrap">{row.Symbol}</td>
-                      <td className="px-3 py-3 text-slate-700 whitespace-nowrap">{row.Company}</td>
+                      <td className="px-3 py-3 font-bold text-slate-900 whitespace-nowrap">{row.Symbol ?? '—'}</td>
+                      <td className="px-3 py-3 text-slate-700 whitespace-nowrap">{row.Company ?? '—'}</td>
                       <td className="px-3 py-3 text-center">
                         <span className={`inline-block px-2 py-1 rounded-full text-[10px] font-bold ${actionBadge(row.Action, row.Score)}`}>
-                          {row.Action === 'CONVICTION BUY' ? 'CONVICTION' : row.Action.split(' - ')[0]}
+                          {actionLabel(row.Action)}
                         </span>
                       </td>
                       <td className="px-3 py-3 text-center">
                         <span className={`inline-block px-2 py-1 rounded text-[10px] font-bold ${scoreBadge(row.Score)}`}>
-                          {row.Score}
+                          {row.Score ?? '—'}
                         </span>
                       </td>
-                      <td className="px-3 py-3 text-slate-600 whitespace-nowrap">{row.Industry}</td>
+                      <td className="px-3 py-3 text-slate-600 whitespace-nowrap">{row.Industry ?? '—'}</td>
                       <td className="px-3 py-3 text-right font-mono text-slate-700">{fmtPrice(row['Current Price'])}</td>
                       <td className="px-3 py-3 text-right font-mono text-slate-500">{fmtPrice(row.ATH)}</td>
                       <td className="px-3 py-3 text-right font-mono text-slate-700">{fmtPct(row['52W Return'])}</td>
@@ -268,7 +274,7 @@ export default function Dashboard() {
                       <td className="px-3 py-3 text-center">{row['Record PAT?'] ? '✅' : '❌'}</td>
                       <td className="px-3 py-3 text-center">
                         {row['Pass Risk Filter'] === false ? (
-                          <span className="text-red-500 font-bold text-[10px]" title={row['Risk Flags'] || ''}>
+                          <span className="text-red-500 font-bold text-[10px]" title={row['Risk Flags'] ?? ''}>
                             FAIL
                           </span>
                         ) : (
@@ -311,7 +317,7 @@ export default function Dashboard() {
   );
 }
 
-function ScoreDot({ score }: { score?: number }) {
+function ScoreDot({ score }: { score?: number | null }) {
   if (!isValidNum(score)) {
     return <span className="inline-block w-2 h-2 rounded-full bg-slate-300" title="N/A" />;
   }

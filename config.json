@@ -4,8 +4,6 @@
     "minimum_universe_size": 700,
     "local_csv": "nse_universe.csv",
     "urls": [
-      "https://archives.nseindia.com/content/indices/ind_nifty500list.csv",
-      "https://archives.nseindia.com/content/equities/EQUITY_L.csv"
     ]
   },
   "rules": {

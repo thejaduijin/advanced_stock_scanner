@@ -2,7 +2,10 @@ name: Run Mehta Screener
 
 on:
   schedule:
-    - cron: '0 * * * *'   # Every 1 hour
+    # 4:00 PM IST = 10:30 UTC, Monday-Friday only
+    - cron: '30 10 * * 1-5'
+    # Optional: 9:30 AM IST pre-market run = 4:00 UTC
+    - cron: '0 4 * * 1-5'
   workflow_dispatch:
 
 jobs:
@@ -39,5 +42,5 @@ jobs:
             echo "No changes to commit."
             exit 0
           fi
-          git commit -m "chore: hourly screener update $(date +%F_%H-%M)"
+          git commit -m "chore: EOD screener update $(date +%F_%H-%M)"
           git push

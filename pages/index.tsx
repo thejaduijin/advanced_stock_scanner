@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
-import data from '../public/data/latest.json';
+import rawData from '../public/data/latest.json';
 
+// ── Types ────────────────────────────────────────────────────────────────────
 type Stock = {
   Symbol: string;
   Company: string;
@@ -27,24 +28,36 @@ type Stock = {
   _sheet: string;
 };
 
-const typedData = data as {
+type ScreenerData = {
   generated_at: string;
   universe_size: number;
   counts: Record<string, number>;
   stocks: Stock[];
 };
 
+// ── Safe data loader ───────────────────────────────────────────────────────
+const typedData: ScreenerData = {
+  generated_at: (rawData as any).generated_at ?? 'Unknown',
+  universe_size: (rawData as any).universe_size ?? 0,
+  counts: (rawData as any).counts ?? {},
+  stocks: Array.isArray((rawData as any).stocks) ? (rawData as any).stocks : [],
+};
+
+// ── Formatters ───────────────────────────────────────────────────────────────
+const isValidNum = (n: unknown): n is number =>
+  typeof n === 'number' && !Number.isNaN(n);
+
 const fmtPct = (n: number | undefined) =>
-  n == null || isNaN(n) ? '—' : `${(n * 100).toFixed(2)}%`;
+  isValidNum(n) ? `${(n * 100).toFixed(2)}%` : '—';
 
 const fmtPrice = (n: number | undefined) =>
-  n == null || isNaN(n) ? '—' : `₹${n.toFixed(2)}`;
+  isValidNum(n) ? `₹${n.toFixed(2)}` : '—';
 
 const fmtNum = (n: number | undefined, digits = 2) =>
-  n == null || isNaN(n) ? '—' : n.toFixed(digits);
+  isValidNum(n) ? n.toFixed(digits) : '—';
 
 const timeAgo = (dateStr: string) => {
-  if (!dateStr || dateStr === 'Not yet run') return 'Unknown';
+  if (!dateStr || dateStr === 'Unknown' || dateStr === 'Not yet run') return 'Unknown';
   try {
     const then = new Date(dateStr);
     const now = new Date();
@@ -61,6 +74,7 @@ const timeAgo = (dateStr: string) => {
 
 type TabKey = 'CONVICTION' | '3/3' | '2/3' | 'ALL' | 'RISK_REJECT' | 'EXIT';
 
+// ── Component ──────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [tab, setTab] = useState<TabKey>('CONVICTION');
   const [search, setSearch] = useState('');
@@ -120,7 +134,7 @@ export default function Dashboard() {
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-1">
-              Auto-refreshes hourly via GitHub Actions. Universe: {typedData.universe_size || typedData.stocks.length} stocks.
+              Auto-refreshes at 4 PM IST on weekdays. Universe: {typedData.universe_size || typedData.stocks.length} stocks.
             </p>
           </div>
           <a
@@ -138,16 +152,16 @@ export default function Dashboard() {
         {/* Stats Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
           {[
-            { label: 'Conviction', value: counts.CONVICTION, color: 'bg-purple-600' },
-            { label: '3/3 Super', value: counts['3/3'], color: 'bg-emerald-500' },
-            { label: '2/3 Hold', value: counts['2/3'], color: 'bg-amber-500' },
-            { label: '1/3 Weak', value: counts['1/3'], color: 'bg-orange-400' },
-            { label: '0/3 Exit', value: counts['0/3'], color: 'bg-red-400' },
-            { label: 'Risk Reject', value: counts.RISK_REJECT, color: 'bg-slate-500' },
+            { label: 'Conviction', value: counts.CONVICTION ?? 0, color: 'bg-purple-600' },
+            { label: '3/3 Super', value: counts['3/3'] ?? 0, color: 'bg-emerald-500' },
+            { label: '2/3 Hold', value: counts['2/3'] ?? 0, color: 'bg-amber-500' },
+            { label: '1/3 Weak', value: counts['1/3'] ?? 0, color: 'bg-orange-400' },
+            { label: '0/3 Exit', value: counts['0/3'] ?? 0, color: 'bg-red-400' },
+            { label: 'Risk Reject', value: counts.RISK_REJECT ?? 0, color: 'bg-slate-500' },
           ].map((s) => (
             <div key={s.label} className={`${s.color} rounded-xl p-4 text-white shadow-sm`}>
               <div className="text-white/80 text-xs font-medium">{s.label}</div>
-              <div className="text-2xl font-bold mt-1">{s.value || 0}</div>
+              <div className="text-2xl font-bold mt-1">{s.value}</div>
             </div>
           ))}
         </div>
@@ -298,7 +312,7 @@ export default function Dashboard() {
 }
 
 function ScoreDot({ score }: { score?: number }) {
-  if (score == null || isNaN(score)) {
+  if (!isValidNum(score)) {
     return <span className="inline-block w-2 h-2 rounded-full bg-slate-300" title="N/A" />;
   }
   const color = score >= 70 ? 'bg-emerald-500' : score >= 50 ? 'bg-amber-400' : 'bg-red-400';

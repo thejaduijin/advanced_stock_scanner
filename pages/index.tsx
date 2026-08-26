@@ -138,7 +138,7 @@ export default function Dashboard() {
             </p>
           </div>
           <a
-            href="https://github.com/thejaduijin/growth_scanner/actions"
+            href="https://github.com/thejaduijin/advanced_stock_scanner/actions"
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition"

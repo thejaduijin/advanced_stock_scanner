@@ -1,0 +1,58 @@
+{
+  "universe": {
+    "top_n": 750,
+    "minimum_universe_size": 700,
+    "local_csv": "nse_universe.csv",
+    "urls": [
+      "https://archives.nseindia.com/content/indices/ind_nifty500list.csv",
+      "https://archives.nseindia.com/content/equities/EQUITY_L.csv"
+    ]
+  },
+  "rules": {
+    "ath_tolerance": 0.98,
+    "pat_record_tolerance": 1.0,
+    "price_quality_min": 70,
+    "fundamental_min": 70,
+    "rs_composite_min": 75,
+    "min_avg_volume": 100000,
+    "min_market_cap_cr": 500
+  },
+  "benchmarks": {
+    "nifty500": "^CRSLDX"
+  },
+  "default_sector_benchmark": "^CNXIT",
+  "sector_benchmarks": {
+    "information technology": "^CNXIT",
+    "software": "^CNXIT",
+    "it services": "^CNXIT",
+    "pharmaceutical": "^CNXPHARMA",
+    "pharma": "^CNXPHARMA",
+    "financial services": "^CNXFINANCE",
+    "bank": "^NSEBANK",
+    "banks": "^NSEBANK",
+    "auto": "^CNXAUTO",
+    "automobile": "^CNXAUTO",
+    "metal": "^CNXMETAL",
+    "metals": "^CNXMETAL",
+    "realty": "^CNXREALTY",
+    "media": "^CNXMEDIA",
+    "energy": "^CNXENERGY",
+    "oil gas": "^CNXENERGY",
+    "consumer durables": "^CNXCONSUM",
+    "fmcg": "^CNXFMCG"
+  },
+  "data": {
+    "user_agent": "Mozilla/5.0 Chrome/127 Safari/537.36"
+  },
+  "runtime": {
+    "workers": 16,
+    "http_timeout": 12,
+    "log_level": "INFO",
+    "yfinance_batch_size": 100,
+    "yfinance_retries": 2,
+    "benchmark_timeout": 8
+  },
+  "output": {
+    "directory": "output"
+  }
+}
